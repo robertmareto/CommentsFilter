@@ -198,4 +198,4 @@ else:
     print("Nenhuma linha corresponde aos termos fornecidos.")
 
 end_time = time.time()
-print(f"time taken: {end_time - init_time}")
+print(f"time taken: {end_time - init_time}s")
