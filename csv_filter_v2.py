@@ -19,23 +19,10 @@ def build_set(term_file) -> set:
         for term in terms:
             if isinstance(term, list):
                 for t in term:
-                    if t.startswith('@') or str(t[0]).isupper():
-                        term_set.add(t)
+                    term_set.add(t)
             else:
-                if term.startswith('@') or str(term[0]).isupper():
-                    term_set.add(term)
+                term_set.add(term)
     return term_set
-
-# Função para criar expressões regulares a partir dos termos
-def create_regex_pattern(term):
-    term_normalized = unidecode(term)
-    pattern = r'(?<!\w)' + re.escape(term_normalized) + r'(?!\w)'
-    return re.compile(pattern, re.IGNORECASE)
-
-# Função para extrair o shortcode da URL
-def extract_shortcode(url):
-    match = re.search(r'/p/([^/]+)/', url)
-    return match.group(1) if match else ''
 
 def build_filtered_df(raw:pd.DataFrame, terms_set:set) -> pd.DataFrame:
     """Find all the matching terms in a Dataframe row.
@@ -61,18 +48,15 @@ def build_filtered_df(raw:pd.DataFrame, terms_set:set) -> pd.DataFrame:
     return raw[raw['MatchTerm'].notnull()]
    
 csv_file = '/home/zuzu/labic/projects/CommentsFilter/dataX.csv'
-sep = ','
-header = True
-
 term_file = '/home/zuzu/labic/projects/CommentsFilter/term.json'
+
 init = time.time()
 print('Reading CSV file...')
-raw = pd.read_csv(csv_file, sep=sep)
+raw = pd.read_csv(csv_file, sep=',')
 print('Building terms set...')
 terms_set = build_set(term_file)
 print('Building filtered DataFrame...')
 filtered_df = build_filtered_df(raw, terms_set)
 print('Saving filtered DataFrame...')
-filtered_df.to_csv('filtered.csv', sep=sep, header=header, index=False)
-end = time.time()
-print(f'Execution time: {end - init:.2f} seconds.')
+filtered_df.to_csv('filtered.csv', sep=',', header=True, index=False)
+print(f'Execution time: {end - time.time():.2f} seconds.')
