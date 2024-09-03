@@ -51,7 +51,7 @@ def search(node, string):
     else:
         # use 'and' for matches on complete words only,
         # versus 'or' for matches on string prefixes
-        if len(tail) == 0 or node.endpoint:
+        if len(tail) == 0 and node.endpoint:
             return True
         return search(node.eq, tail)
 
