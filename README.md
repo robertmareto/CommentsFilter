@@ -2,6 +2,8 @@
 
 Este script em Python filtra dados de um arquivo CSV com base em termos fornecidos em um arquivo JSON. Ele é útil para processar dados de redes sociais, como Twitter e Instagram, e extrair linhas que contenham termos específicos, fornecendo um dataset filtrado como resultado.
 
+Optamos por usar a Trie para otimizar o processamento do filtro para reduzir a complexidade das operações de comparação
+
 ## Funcionalidades
 
 -   Filtra dados de um CSV com base em termos fornecidos em um JSON.
