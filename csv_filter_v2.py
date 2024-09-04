@@ -2,7 +2,6 @@ import pandas as pd
 from pandas import DataFrame
 import json
 from unidecode import unidecode
-import re
 import time
 import os
 
@@ -72,12 +71,16 @@ def menu() -> tuple:
         if choice == '1':
             row_name_social = 'Tweet Text'
             row_name_user = 'Username'
+            metadata_columns = ['Retweets', 'Comments', 'Favorites', 'Author Favorites', 'Author Followers', 'Author Friends']
         elif choice == '2':
             row_name_social = 'Caption'
             row_name_user = 'Username'
+            metadata_columns = ['Likes', 'Comments', 'Video View Count']
+
         elif choice == '3':
             row_name_social = input("Digite o nome da coluna personalizada: ")
             row_name_user = input("Digite o nome da coluna de nome de usuário: ")
+            metadata_columns = []
         else:
             print("Por favor, escolha uma opção válida.")
     
@@ -111,7 +114,7 @@ def menu() -> tuple:
 
     terms_file = os.path.join(directory, json_file)
     dataset_file = os.path.join(directory, csv_file)
-    return row_name, terms_file, dataset_file
+    return row_name, terms_file, dataset_file, metadata_columns
     
 def build_set(term_file:str) -> set:
     """Build a set of terms from a JSON file.
@@ -127,13 +130,13 @@ def build_set(term_file:str) -> set:
         for term in terms:
             if isinstance(term, list):
                 for t in term:
-                    term_set.add(t)
+                    term_set.add(t.strip())
             else:
-                term_set.add(term)
+                term_set.add(term.strip())
     return term_set
 
-def build_filtered_df(raw:DataFrame, terms_set:set, row_name:str) -> DataFrame:
-    """Find all the matching terms in a Dataframe row.
+def build_filtered_df(raw: DataFrame, terms_set: set, row_name: str, metadata_columns: list) -> DataFrame:
+    """Find all the matching terms in a DataFrame row.
     - Complexity: O(n^2) -> O(n) for each row.
     - Input: 
         - raw (DataFrame) -> raw DataFrame.
@@ -144,27 +147,38 @@ def build_filtered_df(raw:DataFrame, terms_set:set, row_name:str) -> DataFrame:
     """
     matching_terms = []
     raw['MatchTerm'] = None
+
+    # Preencher NaN com 0 e converter para int nas colunas de metadados
+    for col in metadata_columns:
+        if col != 'null':
+            raw[col] = raw[col].fillna(0).astype(int)
+
+    # Convert the set of terms to lowercase
+    terms_set_lower = {term.lower() for term in terms_set}
+
     for index, row in raw.iterrows():
-        words = row[row_name].split()
+        # Convert the row text to lowercase
+        words = row[row_name].lower().split()
         first_word = words[0]
         tst = Trie(first_word)
         for word in words[1:]:
             tst.append(word)
-        for term in terms_set:
+        for term in terms_set_lower:
             if tst.__contains__(term):
                 matching_terms.append(term)
         if len(matching_terms) > 0:
-            raw.at[index, 'MatchTerm'] = matching_terms
+            raw.at[index, 'MatchTerm'] = ', '.join(matching_terms)
         del tst
         matching_terms = []
+        
     return raw[raw['MatchTerm'].notnull()]
    
 if  __name__ == '__main__':
-    row_name, terms_file, dataset_file = menu()
+    row_name, terms_file, dataset_file, metadata_columns = menu()
     init = time.time() # benchmarking
     raw = pd.read_csv(dataset_file, sep=',')
     terms_set = build_set(terms_file)
-    print('Building filtered DataFrame...')
-    filtered_df = build_filtered_df(raw, terms_set, row_name)
+    print('Filtrando...')
+    filtered_df = build_filtered_df(raw, terms_set, row_name, metadata_columns)
     filtered_df.to_csv('filtered.csv', sep=',', header=True, index=False)
-    print(f'Execution time: {time.time() - init :.2f} seconds.')
+    print(f'Tempo de execução: {time.time() - init :.2f} segundos.\nTotal de linhas no dataset: {len(raw)}\nTotal de linhas filtradas: {len(filtered_df)}')
