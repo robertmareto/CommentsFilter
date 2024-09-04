@@ -179,6 +179,7 @@ if  __name__ == '__main__':
     raw = pd.read_csv(dataset_file, sep=',')
     terms_set = build_set(terms_file)
     print('Filtrando...')
+    filename = dataset_file.split('/')[-1].split('.')[0]
     filtered_df = build_filtered_df(raw, terms_set, row_name, metadata_columns)
-    filtered_df.to_csv('filtered.csv', sep=',', header=True, index=False)
+    filtered_df.to_csv(f'{filename}_filtered.csv', sep=',', header=True, index=False)
     print(f'Tempo de execução: {time.time() - init :.2f} segundos.\nTotal de linhas no dataset: {len(raw)}\nTotal de linhas filtradas: {len(filtered_df)}')
