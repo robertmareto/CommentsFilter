@@ -232,17 +232,27 @@ def build_filtered_df(raw: pd.DataFrame, terms_list: list, row_name: str, metada
 
     if post_only:
         # Get Tweet IDs of the filtered Posts
-        tweet_ids = filtered_df.loc[filtered_df['Type'] == 'Post', 'Tweet ID (click to view url)'].tolist()
+        if row_name == 'Tweet Text':
+            id_row_name = 'Tweet ID (click to view url)'
+        else:
+            id_row_name = 'URL'
+
+        if row_name == 'Tweet Text':
+            id_comment_row_name = 'SourcePostId'
+        else:
+            id_comment_row_name = 'SourceLink'
+
+        tweet_ids = filtered_df.loc[filtered_df['Type'] == 'Post', id_row_name].tolist()
         
         # Filter out Comments with SourcePostId matching any of the Tweet IDs
-        comments_to_remove = raw[(raw['Type'] == 'Comment') & (raw['SourcePostId'].isin(tweet_ids))]
+        comments_to_remove = raw[(raw['Type'] == 'Comment') & (raw[id_comment_row_name].isin(tweet_ids))]
         
         # Print the IDs of comments being removed
-        for comment_id in comments_to_remove['SourcePostId'].unique():
+        for comment_id in comments_to_remove[id_comment_row_name].unique():
             print(f"Removing Comment with SourcePostId: {comment_id}")
         
         # Remove Comments that are associated with the Tweet IDs
-        filtered_df = filtered_df[~((filtered_df['Type'] == 'Comment') & (filtered_df['SourcePostId'].isin(tweet_ids)))]
+        filtered_df = filtered_df[~((filtered_df['Type'] == 'Comment') & (filtered_df[id_comment_row_name].isin(tweet_ids)))]
 
     return filtered_df
    
