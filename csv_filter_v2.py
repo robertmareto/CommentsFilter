@@ -155,7 +155,7 @@ def build_filtered_df(raw: DataFrame, terms_list: list, row_name: str, metadata_
     - Complexity: O(n^2) -> O(n) for each row.
     - Input: 
         - raw (DataFrame) -> raw DataFrame.
-        - terms_set (set) -> set of terms.
+        - terms_list (list) -> list of terms.
         - row_name (str) -> name of the column to be filtered.
     - Output: 
         - filtered_df (DataFrame) -> filtered DataFrame.
@@ -169,7 +169,7 @@ def build_filtered_df(raw: DataFrame, terms_list: list, row_name: str, metadata_
             raw[col] = raw[col].fillna(0).astype(int)
 
     # Convert the set of terms to lowercase
-    normalized_terms = list()
+    normalized_terms = []
     for term in terms_list:
         if isinstance(term, list):
             normalized_terms.append([unidecode(t.lower()) for t in term])
@@ -177,16 +177,19 @@ def build_filtered_df(raw: DataFrame, terms_list: list, row_name: str, metadata_
             normalized_terms.append(unidecode(term.lower()))
 
     for index, row in raw.iterrows():
-        # Convert the row text to lowercase
-        words = row[row_name].split()
+        # Normalize and split the row text
+        words = [unidecode(word.lower()) for word in row[row_name].split()]
+        if not words:
+            continue
         first_word = words[0]
+
         # build the trie with the post words
         tst = Trie(first_word)
         for word in words[1:]:
             tst.append(word)
 
         # check if the terms set contains all of the words in the post
-        for term in terms_list:
+        for term in normalized_terms:
             contain_all = True
             if isinstance(term, list):
                 for t in term:
@@ -197,7 +200,7 @@ def build_filtered_df(raw: DataFrame, terms_list: list, row_name: str, metadata_
                     matching_terms.append(', '.join(term))
             elif tst.__contains__(term):
                 matching_terms.append(term)
-        if len(matching_terms) > 0:
+        if matching_terms:
             matching_terms = list(set(matching_terms))
             raw.at[index, 'MatchTerm'] = matching_terms
         del tst
