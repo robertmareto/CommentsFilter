@@ -135,7 +135,22 @@ def build_set(term_file:str) -> set:
                 term_set.add(term.strip())
     return term_set
 
-def build_filtered_df(raw: DataFrame, terms_set: set, row_name: str, metadata_columns: list) -> DataFrame:
+def build_list(term_file:str) -> list:
+    """Build a list of terms from a JSON file.
+    - Complexity: O(n)
+    - Input: 
+        - term_file (str) -> path to the JSON file.
+    - Output: 
+        - term_list (list) -> list of terms.
+    """
+    with open(term_file, 'r', encoding='utf-8') as json_file:
+        terms = json.load(json_file)
+        term_list:list = list()
+        for term in terms:
+            term_list.append(term)
+    return term_list
+
+def build_filtered_df(raw: DataFrame, terms_list: list, row_name: str, metadata_columns: list) -> DataFrame:
     """Find all the matching terms in a DataFrame row.
     - Complexity: O(n^2) -> O(n) for each row.
     - Input: 
@@ -154,20 +169,37 @@ def build_filtered_df(raw: DataFrame, terms_set: set, row_name: str, metadata_co
             raw[col] = raw[col].fillna(0).astype(int)
 
     # Convert the set of terms to lowercase
-    terms_set_lower = {term.lower() for term in terms_set}
+    normalized_terms = list()
+    for term in terms_list:
+        if isinstance(term, list):
+            normalized_terms.append([unidecode(t.lower()) for t in term])
+        else:
+            normalized_terms.append(unidecode(term.lower()))
 
     for index, row in raw.iterrows():
         # Convert the row text to lowercase
-        words = row[row_name].lower().split()
+        words = row[row_name].split()
         first_word = words[0]
+        # build the trie with the post words
         tst = Trie(first_word)
         for word in words[1:]:
             tst.append(word)
-        for term in terms_set_lower:
-            if tst.__contains__(term):
+
+        # check if the terms set contains all of the words in the post
+        for term in terms_list:
+            contain_all = True
+            if isinstance(term, list):
+                for t in term:
+                    if not tst.__contains__(t):
+                        contain_all = False
+                        break
+                if contain_all:
+                    matching_terms.append(', '.join(term))
+            elif tst.__contains__(term):
                 matching_terms.append(term)
         if len(matching_terms) > 0:
-            raw.at[index, 'MatchTerm'] = ', '.join(matching_terms)
+            matching_terms = list(set(matching_terms))
+            raw.at[index, 'MatchTerm'] = matching_terms
         del tst
         matching_terms = []
         
@@ -177,9 +209,9 @@ if  __name__ == '__main__':
     row_name, terms_file, dataset_file, metadata_columns = menu()
     init = time.time() # benchmarking
     raw = pd.read_csv(dataset_file, sep=',')
-    terms_set = build_set(terms_file)
+    terms_list = build_list(terms_file)
     print('Filtrando...')
     filename = dataset_file.split('/')[-1].split('.')[0]
-    filtered_df = build_filtered_df(raw, terms_set, row_name, metadata_columns)
+    filtered_df = build_filtered_df(raw, terms_list, row_name, metadata_columns)
     filtered_df.to_csv(f'{filename}_filtered.csv', sep=',', header=True, index=False)
     print(f'Tempo de execução: {time.time() - init :.2f} segundos.\nTotal de linhas no dataset: {len(raw)}\nTotal de linhas filtradas: {len(filtered_df)}')
