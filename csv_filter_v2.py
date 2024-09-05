@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 from pandas import DataFrame
 import json
@@ -179,6 +180,11 @@ def build_filtered_df(raw: DataFrame, terms_list: list, row_name: str, metadata_
     for index, row in raw.iterrows():
         # Normalize and split the row text
         words = [unidecode(word.lower()) for word in row[row_name].split()]
+        for i, word in enumerate(words):
+            words[i] = re.sub(r'[^a-zA-Z0-9#@]', '', word)
+       
+        print(f"{[index]} => {words}")
+
         if not words:
             continue
         first_word = words[0]
