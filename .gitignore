@@ -1,6 +1,6 @@
 .venv
-
-
+*.csv
+*.json
 __pycache__
 out
 data
