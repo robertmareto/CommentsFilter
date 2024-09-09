@@ -20,28 +20,16 @@ Optamos por usar a Trie para otimizar o processamento do filtro para reduzir a c
 
 Instale as dependências utilizando o seguinte comando:
 
-bash
-
-Copiar código
-
 `pip install -r requirements.txt` 
 
 ## Como usar
 
 1.  **Clonar o repositório:**
     
-    bash
-    
-    Copiar código
-    
     `git clone https://github.com/robertmareto/CommentsFilter.git
     cd CommentsFilter` 
     
 2.  **Execute o script:**
-    
-    bash
-    
-    Copiar código
     
     `python csv_filter_v2.py` 
     
@@ -57,8 +45,6 @@ Copiar código
 ### Estrutura do JSON de termos:
 
 json
-
-Copiar código
 
 `[
     "termo1",
