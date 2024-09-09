@@ -267,7 +267,7 @@ def build_filtered_df(raw: pd.DataFrame, terms_list: list, row_name: str, metada
 if  __name__ == '__main__':
     row_name, terms_file, dataset_file, metadata_columns, post_only, social_media = menu()
     init = time.time() # benchmarking
-    raw = pd.read_csv(dataset_file, sep=',', encoding='utf-8',  dtype={'Tweet ID (click to view url)': str})
+    raw = pd.read_csv(dataset_file, sep=',', encoding='utf-8',  dtype={'Tweet ID (click to view url)': str, 'SourcePostId': str})
     terms_list = build_list(terms_file)
     print('Filtrando...')
     filename = dataset_file.split('/')[-1].split('.')[0]
