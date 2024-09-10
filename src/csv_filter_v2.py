@@ -217,7 +217,7 @@ def build_filtered_df(raw: pd.DataFrame, terms_list: list, row_name: str, metada
             continue  # Continue to the next row
 
         # Normalize and split the row text
-        words = [unidecode(word.lower()) for word in row[row_name].split()]
+        words = [unidecode(word.lower()) for word in str(row[row_name]).split()]
         for i, word in enumerate(words):
             words[i] = re.sub(r'[^a-zA-Z0-9#@_]', '', word)
        
